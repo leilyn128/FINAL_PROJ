@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Latitude Input -->
+    <EditText
+        android:id="@+id/latitudeInput"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="Latitude"
+        android:inputType="numberDecimal"
+        android:padding="12dp" />
+
+    <!-- Longitude Input -->
+    <EditText
+        android:id="@+id/longitudeInput"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="Longitude"
+        android:inputType="numberDecimal"
+        android:padding="12dp" />
+
+    <!-- Radius Input -->
+    <EditText
+        android:id="@+id/radiusInput"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="Radius (meters)"
+        android:inputType="number"
+        android:padding="12dp" />
+
+    <!-- Button to Add Geofence -->
+    <Button
+        android:id="@+id/addGeofenceButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Geofence"
+        android:layout_gravity="center" />
+
+    <!-- RecyclerView to display geofences -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/geofenceList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp" />
+
+
+</LinearLayout>

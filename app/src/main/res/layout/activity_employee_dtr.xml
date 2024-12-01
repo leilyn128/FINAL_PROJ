@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/dtr_date"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Date"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dtr_am_in"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="AM IN"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/dtr_am_out"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="AM OUT"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/dtr_pm_in"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="PM IN"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/dtr_pm_out"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="PM OUT"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/dtr_remarks"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Remarks"
+        android:textSize="14sp" />
+
+
+    <!-- Buttons Section: Time In and Time Out -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:paddingBottom="16dp">
+
+        <Button
+            android:id="@+id/time_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="Time In"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/time_out_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time Out"
+            android:textSize="16sp"
+            android:enabled="false" />
+    </LinearLayout>
+
+    <!-- Title Section: DTR History -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DTR History"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="8dp"
+        android:gravity="center" />
+
+    <!-- RecyclerView Section: Display DTR Records -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dtr_history"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+</LinearLayout>
