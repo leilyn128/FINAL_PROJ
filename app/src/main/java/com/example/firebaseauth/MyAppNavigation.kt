@@ -166,23 +166,27 @@ fun MyAppNavigation(
                 // DTR Page (Employee Time Record)
                 composable("Dtr") {
                     val dtrViewModel: DTRViewModel = viewModel()
-                    val fusedLocationClient =
-                        LocationServices.getFusedLocationProviderClient(LocalContext.current)
+                    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
 
-                    val currentUserEmail =
-                        remember { FirebaseAuth.getInstance().currentUser?.email }
+                    val currentUserEmail = remember { FirebaseAuth.getInstance().currentUser?.email }
+
+                    // Define the onTimeStamped callback function
+                    val onTimeStamped: () -> Unit = {
+                        // Logic when the time is successfully stamped
+                        Log.d("DTR", "Time has been stamped!")
+                    }
 
                     currentUserEmail?.let { email ->
                         DTR(
-                            viewModel = dtrViewModel,
+                            viewModel =dtrViewModel,
                             email = email,
-                            fusedLocationClient = fusedLocationClient
+                            fusedLocationClient = fusedLocationClient,
+                            onTimeStamped = onTimeStamped // Pass the callback
                         )
                     } ?: run {
                         Log.e("DTR", "No logged-in user email found.")
                     }
                 }
-
 
 
                 // Map Page

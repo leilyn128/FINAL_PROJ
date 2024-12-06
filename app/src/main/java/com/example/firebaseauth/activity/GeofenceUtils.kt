@@ -13,7 +13,7 @@ object GeofenceUtils {
         geofenceLongitude: Double,
         geofenceRadius: Double,
         context: Context,
-        onSuccess: () -> Unit,
+        onSuccess: (Boolean) -> Unit, // Updated to accept a Boolean
         onFailure: (String) -> Unit
     ) {
         fusedLocationClient.lastLocation
@@ -31,18 +31,19 @@ object GeofenceUtils {
                     )
 
                     if (distance <= geofenceRadius) {
-                        onSuccess()
+                        onSuccess(true) // Pass true if within geofence
                     } else {
-                        onFailure("") // Invoke onFailure if outside geofence
+                        onSuccess(false) // Pass false if outside geofence
                     }
                 } else {
-                    onFailure("Unable to determine location") // Invoke onFailure if location is not found
+                    onFailure("Unable to determine location") // Invoke onFailure if location is null
                 }
             }
             .addOnFailureListener {
                 onFailure("Error fetching location: ${it.message}")
             }
     }
+
 
     private fun calculateDistance(
         lat1: Double,

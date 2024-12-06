@@ -104,15 +104,19 @@ fun ContentScreen(
     dtrViewModel: DTRViewModel,
     userRole: String
 ) {
-    val context = LocalContext.current //
+    val context = LocalContext.current
     val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-
 
     val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
 
+    // Define the onTimeStamped callback
+    val onTimeStamped: () -> Unit = {
+        // Logic for when the time is successfully stamped
+        Log.d("ContentScreen", "Time has been stamped!")
+    }
+
     when (selectedIndex) {
         0 -> {
-
             MapPage(modifier = modifier)
         }
 
@@ -121,7 +125,8 @@ fun ContentScreen(
                 DTR(
                     viewModel = dtrViewModel,
                     email = email,
-                    fusedLocationClient = fusedLocationClient
+                    fusedLocationClient = fusedLocationClient,
+                    onTimeStamped = onTimeStamped // Pass the callback here
                 )
             } ?: run {
                 Log.e("ContentScreen", "No logged-in user's email found.")
@@ -129,7 +134,6 @@ fun ContentScreen(
         }
 
         2 -> {
-
             Account(
                 modifier = modifier,
                 authViewModel = authViewModel,
@@ -138,7 +142,7 @@ fun ContentScreen(
         }
 
         3 -> {
-
+            // You can handle the case for index 3 if necessary
         }
     }
 }
