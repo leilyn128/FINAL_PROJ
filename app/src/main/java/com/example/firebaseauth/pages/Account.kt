@@ -42,10 +42,7 @@ fun Account(
         }
     }
 
-    val loading = authState.value is AuthState.Loading
-    val user = (authState.value as? AuthState.Authenticated)?.user
 
-    // Load user profile
     LaunchedEffect(true) {
         profileViewModel.loadUserProfile()
     }

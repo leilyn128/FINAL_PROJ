@@ -82,24 +82,20 @@ class AuthController(application: Application) : AndroidViewModel(application) {
 
                     when (role) {
                         "admin" -> {
-                            Log.d("AuthViewModel", "Navigating to adminHomePage")
                             navController.navigate(Screen.AdminHomePage.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         }
                         "employee" -> {
-                            Log.d("AuthViewModel", "Navigating to homePage")
                             navController.navigate(Screen.HomePage.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         }
-                        else -> {
-                            Log.e("AuthViewModel", "Unknown role: $role")
+
                         }
-                    }
-                } else {
-                    Log.e("AuthViewModel", "Login failed: ${task.exception?.message}")
+
                 }
+
             }
             .addOnFailureListener { exception ->
                 Log.e("AuthViewModel", "Error during login: ${exception.message}")

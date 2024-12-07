@@ -34,15 +34,22 @@ fun DTR(
     viewModel: DTRController,
     email: String,
     fusedLocationClient: FusedLocationProviderClient,
-    onTimeStamped: () -> Unit // Callback to notify that time has been stamped
+    onTimeStamped: () -> Unit
 ) {
     val context = LocalContext.current
     val currentTime = Calendar.getInstance().time
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val record = remember { mutableStateOf<DTRRecord?>(null) } // Holds the fetched DTR record
+    val record = remember { mutableStateOf<DTRRecord?>(null) }
 
     val dtrRecords = viewModel.dtrRecords.collectAsState().value
     var showRecordsDialog by remember { mutableStateOf(false) }
+
+    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+    // Find today's record in dtrRecords
+    val todaysRecord = dtrRecords.find { record ->
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(record.date) == today
+    }
 
     fun getCurrentDate(): String {
         val calendar = Calendar.getInstance()
@@ -53,18 +60,17 @@ fun DTR(
     LaunchedEffect(email) {
         viewModel.fetchDTRRecords(email) // Fetch records for the given email
     }
-        // Handle geofence validation, clock-in, and clock-out logic
+
+    // Handle geofence validation, clock-in, and clock-out logic
     LaunchedEffect(key1 = Unit) {
         GeofenceUtility.fetchGeofenceData(
             onSuccess = { polygonCoordinates ->
-                Log.d("GeofenceData", "Fetched coordinates: $polygonCoordinates")
 
                 GeofenceUtils.validateGeofenceAccess(
                     fusedLocationClient,
                     polygonCoordinates,
                     context,
                     onSuccess = { insideGeofence ->
-                        Log.d("GeofenceValidation", "Inside geofence: $insideGeofence")
 
                         val db = FirebaseFirestore.getInstance()
                         val recordId = "${email}-${getCurrentDate()}"
@@ -90,6 +96,7 @@ fun DTR(
                                             .addOnSuccessListener {
                                                 Toast.makeText(context, "Morning clock-in successful!", Toast.LENGTH_SHORT).show()
                                                 record.value = updatedRecord
+                                                viewModel.fetchDTRRecords(email) // Ensure UI updates
                                                 onTimeStamped()
                                             }
                                     } else if (currentHour >= 12 && currentRecord?.afternoonArrival == null) {
@@ -105,11 +112,12 @@ fun DTR(
                                             .addOnSuccessListener {
                                                 Toast.makeText(context, "Afternoon clock-in successful!", Toast.LENGTH_SHORT).show()
                                                 record.value = updatedRecord
+                                                viewModel.fetchDTRRecords(email) // Ensure UI updates
                                                 onTimeStamped()
                                             }
                                     }
                                 } else {
-                                    // Clock-Out Logic (when exiting the geofence or manually clocking out)
+                                    // Clock-Out Logic
                                     if (currentHour < 12) {
                                         if (currentRecord?.morningArrival == null) {
                                             Toast.makeText(context, "Please clock-in first before clocking out in the morning.", Toast.LENGTH_SHORT).show()
@@ -122,6 +130,7 @@ fun DTR(
                                                 .addOnSuccessListener {
                                                     Toast.makeText(context, "Morning clock-out successful!", Toast.LENGTH_SHORT).show()
                                                     record.value = updatedRecord
+                                                    viewModel.fetchDTRRecords(email) // Ensure UI updates
                                                     onTimeStamped()
                                                 }
                                         }
@@ -137,6 +146,7 @@ fun DTR(
                                                 .addOnSuccessListener {
                                                     Toast.makeText(context, "Afternoon clock-out successful!", Toast.LENGTH_SHORT).show()
                                                     record.value = updatedRecord
+                                                    viewModel.fetchDTRRecords(email) // Ensure UI updates
                                                     onTimeStamped()
                                                 }
                                         }
@@ -170,11 +180,13 @@ fun DTR(
             showRecordsDialog = true // Open the dialog when the icon is clicked
         })
 
-        if (dtrRecords.isNotEmpty()) {
-            DTRCard(record = dtrRecords.last()) // Display the most recent record
+        if (todaysRecord == null) {
+            Text("No records found for today.", style = MaterialTheme.typography.bodyLarge)
         } else {
-            Text("No records available.")
+            // Show today's DTR record
+            DTRCard(record = todaysRecord)
         }
+
     }
     if (showRecordsDialog) {
         RecordsDialog(

@@ -8,28 +8,25 @@ import com.example.firebaseauth.model.GeofenceData
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import com.google.android.gms.maps.model.LatLng
-import java.util.Date
+
 
 class DTRController : ViewModel() {
 
 
-        private val _dtrRecords = MutableStateFlow<List<DTRRecord>>(emptyList())
-        val dtrRecords: StateFlow<List<DTRRecord>> = _dtrRecords
+    private val _dtrRecords = MutableStateFlow<List<DTRRecord>>(emptyList())
+    val dtrRecords: StateFlow<List<DTRRecord>> = _dtrRecords
 
-        fun fetchDTRRecords(email: String) {
-            FirebaseFirestore.getInstance().collection("dtr_records")
-                .get()
-                .addOnSuccessListener { querySnapshot ->
-                    val records = querySnapshot.documents.mapNotNull { document ->
-                        document.toObject(DTRRecord::class.java)?.takeIf { it.email == email }
-                    }
-                    _dtrRecords.value = records
+    fun fetchDTRRecords(email: String) {
+        FirebaseFirestore.getInstance().collection("dtr_records")
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val records = querySnapshot.documents.mapNotNull { document ->
+                    document.toObject(DTRRecord::class.java)?.takeIf { it.email == email }
                 }
-                .addOnFailureListener { exception ->
-                    Log.e("DTR", "Error fetching DTR records: ${exception.message}")
-                }
-        }
+                _dtrRecords.value = records
+            }
+            .addOnFailureListener { exception ->
+                Log.e("DTR", "Error fetching DTR records: ${exception.message}")
+            }
     }
+}

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.app.ActivityCompat
-import com.example.firebaseauth.model.GeofenceData
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.location.LocationRequest

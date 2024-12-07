@@ -10,7 +10,5 @@ data class DTRRecord(
     val morningDeparture: Date? = null,
     val afternoonArrival: Date? = null,
     val afternoonDeparture: Date? = null
-) {
-    // Default constructor required for Firebase Firestore
-    constructor() : this(null, null, null, null, null, null)
-}
+)
+

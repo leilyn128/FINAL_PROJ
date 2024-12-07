@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.firebaseauth.R
+import com.example.firebaseauth.model.GeofenceData
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -59,9 +60,8 @@ class GeofencingActivity : AppCompatActivity(), OnMapReadyCallback {
         val firestore = FirebaseFirestore.getInstance()
 
 
-        val geofenceData = hashMapOf(
-            "vertices" to vertices.map { hashMapOf("lat" to it.latitude, "lng" to it.longitude) }
-        )
+        val geofenceData = GeofenceData(points = vertices)
+
 
         firestore.collection("geofences").add(geofenceData)
             .addOnSuccessListener {

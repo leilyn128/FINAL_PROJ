@@ -84,9 +84,8 @@ fun GeofencePage(navController: NavController) {
         }
     }
 
-    // Function to reset the polygon
     fun resetGeofence() {
-        polygonPoints = emptyList()  // Clear the existing polygon points
+        polygonPoints = emptyList()
     }
 
     // UI Layout
@@ -121,7 +120,7 @@ fun GeofencePage(navController: NavController) {
         Button(
             onClick = { resetGeofence() },
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.TopStart)
                 .padding(16.dp)
         ) {
             Text("Reset Geofence")
