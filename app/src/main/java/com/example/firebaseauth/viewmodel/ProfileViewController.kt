@@ -7,7 +7,7 @@ import com.example.firebaseauth.model.UserProfileData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewController : ViewModel() {
     private val _userProfile = MutableLiveData<UserProfileData>()
     val userProfile: LiveData<UserProfileData> get() = _userProfile
 

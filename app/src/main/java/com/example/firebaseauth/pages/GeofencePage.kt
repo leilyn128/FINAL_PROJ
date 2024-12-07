@@ -25,37 +25,29 @@ fun GeofencePage(navController: NavController) {
     val context = LocalContext.current
     val firestore = FirebaseFirestore.getInstance()
 
-    // Admin inputs for geofence details
+    var polygonPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
     var geofenceLat by remember { mutableStateOf("") }
     var geofenceLon by remember { mutableStateOf("") }
-    var geofenceRadius by remember { mutableStateOf("") }
-
-    // State for geofence center and radius
-    var geofenceCenter by remember { mutableStateOf<LatLng?>(null) }
-    var geofenceRadiusValue by remember { mutableStateOf(0.0) }
-
-    // Camera position state for GoogleMap
     val cameraPositionState = rememberCameraPositionState()
 
-    // State for toggling the input form visibility
     var showInputForm by remember { mutableStateOf(false) }
 
-    // Fetch geofence data from Firestore when the composable loads
     LaunchedEffect(Unit) {
         firestore.collection("geofences").document("bisu_clarin")
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val lat = document.getDouble("latitude") ?: 0.0
-                    val lon = document.getDouble("longitude") ?: 0.0
-                    val radius = document.getDouble("radius") ?: 0.0
+                    // Fetching the polygon data
+                    val points = document.get("polygonPoints") as? List<Map<String, Double>> ?: emptyList()
+                    polygonPoints = points.map {
+                        LatLng(it["latitude"] ?: 0.0, it["longitude"] ?: 0.0)
+                    }
 
-                    // Update state with fetched data
-                    geofenceCenter = LatLng(lat, lon)
-                    geofenceRadiusValue = radius
-
-                    // Move the camera to the geofence center
-                    cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), 15f))
+                    // If the polygon is present, update the map view
+                    if (polygonPoints.isNotEmpty()) {
+                        val firstPoint = polygonPoints.first()
+                        cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(firstPoint, 15f))
+                    }
                 }
             }
             .addOnFailureListener {
@@ -63,35 +55,38 @@ fun GeofencePage(navController: NavController) {
             }
     }
 
-    // Update geofence in Firestore based on admin inputs
+    // Function to save the polygon geofence to Firestore
     fun updateGeofence() {
         val lat = geofenceLat.toDoubleOrNull()
         val lon = geofenceLon.toDoubleOrNull()
-        val radius = geofenceRadius.toDoubleOrNull()
 
-        if (lat != null && lon != null && radius != null) {
-            val geofenceData = mapOf(
-                "latitude" to lat,
-                "longitude" to lon,
-                "radius" to radius
-            )
+        if (lat != null && lon != null) {
+            // Add the new point to the polygon points
+            val newPoint = LatLng(lat, lon)
+            polygonPoints = polygonPoints + newPoint
+
+            // Convert polygon points to Firestore-friendly format (List of maps)
+            val polygonData = polygonPoints.map { mapOf("latitude" to it.latitude, "longitude" to it.longitude) }
 
             firestore.collection("geofences").document("bisu_clarin")
-                .set(geofenceData)
+                .set(mapOf("polygonPoints" to polygonData))
                 .addOnSuccessListener {
-                    geofenceCenter = LatLng(lat, lon)
-                    geofenceRadiusValue = radius
-
-                    // Move the camera to the new geofence center
-                    cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), 15f))
                     Toast.makeText(context, "Geofence updated and saved!", Toast.LENGTH_SHORT).show()
+
+                    // Move the camera to the newly added point
+                    cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(newPoint, 15f))
                 }
                 .addOnFailureListener {
                     Toast.makeText(context, "Error saving geofence", Toast.LENGTH_SHORT).show()
                 }
         } else {
-            Toast.makeText(context, "Please enter valid geofence details.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Please enter valid coordinates", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // Function to reset the polygon
+    fun resetGeofence() {
+        polygonPoints = emptyList()  // Clear the existing polygon points
     }
 
     // UI Layout
@@ -101,12 +96,10 @@ fun GeofencePage(navController: NavController) {
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState
         ) {
-            // Display geofence center and radius
-            geofenceCenter?.let { center ->
-                Marker(state = MarkerState(position = center), title = "Geofence Center")
-                Circle(
-                    center = center,
-                    radius = geofenceRadiusValue,
+            // Draw the polygon on the map if points are available
+            if (polygonPoints.size >= 3) {  // Only draw polygon if there are at least 3 points
+                Polygon(
+                    points = polygonPoints,
                     strokeColor = Color.Blue,
                     strokeWidth = 2f,
                     fillColor = Color(0x220000FF) // Light blue fill
@@ -114,7 +107,7 @@ fun GeofencePage(navController: NavController) {
             }
         }
 
-        // Add button to toggle input form
+        // Add button to toggle input form for adding a point
         IconButton(
             onClick = { showInputForm = !showInputForm },
             modifier = Modifier
@@ -124,7 +117,17 @@ fun GeofencePage(navController: NavController) {
             Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.Black)
         }
 
-        // Input form overlay
+        // Reset button to clear the polygon and start fresh
+        Button(
+            onClick = { resetGeofence() },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(16.dp)
+        ) {
+            Text("Reset Geofence")
+        }
+
+        // Input form overlay for adding a point to the polygon
         if (showInputForm) {
             Box(
                 modifier = Modifier
@@ -137,13 +140,11 @@ fun GeofencePage(navController: NavController) {
                         .background(Color.White, shape = MaterialTheme.shapes.medium)
                         .padding(16.dp)
                 ) {
-                    Text("Set Geofence", style = MaterialTheme.typography.headlineSmall)
+                    Text("Set Polygon Point", style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(16.dp))
                     InputField(value = geofenceLat, label = "Latitude") { geofenceLat = it }
                     Spacer(modifier = Modifier.height(8.dp))
                     InputField(value = geofenceLon, label = "Longitude") { geofenceLon = it }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    InputField(value = geofenceRadius, label = "Radius (meters)") { geofenceRadius = it }
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -156,7 +157,7 @@ fun GeofencePage(navController: NavController) {
                             updateGeofence()
                             showInputForm = false
                         }) {
-                            Text("Save")
+                            Text("Add Point")
                         }
                     }
                 }
@@ -164,6 +165,7 @@ fun GeofencePage(navController: NavController) {
         }
     }
 }
+
 @Composable
 fun InputField(value: String, label: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(

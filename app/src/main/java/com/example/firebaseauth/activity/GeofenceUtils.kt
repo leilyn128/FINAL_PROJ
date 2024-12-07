@@ -2,56 +2,40 @@ package com.example.firebaseauth.activity
 
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
-import kotlin.math.pow
-import kotlin.math.sqrt
+import com.google.android.gms.maps.model.LatLng
+import kotlin.math.abs
 
 object GeofenceUtils {
 
-    fun validateGeofenceAccess(
-        fusedLocationClient: FusedLocationProviderClient,
-        geofenceLatitude: Double,
-        geofenceLongitude: Double,
-        geofenceRadius: Double,
-        context: Context,
-        onSuccess: (Boolean) -> Unit, // Updated to accept a Boolean
-        onFailure: (String) -> Unit
-    ) {
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location ->
+        fun validateGeofenceAccess(
+            fusedLocationClient: FusedLocationProviderClient,
+            polygonCoordinates: List<LatLng>,
+            context: Context,
+            onSuccess: (Boolean) -> Unit,
+            onFailure: (String) -> Unit
+        ) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
-                    val userLatitude = location.latitude
-                    val userLongitude = location.longitude
-
-                    // Calculate distance between user and geofence
-                    val distance = calculateDistance(
-                        userLatitude,
-                        userLongitude,
-                        geofenceLatitude,
-                        geofenceLongitude
-                    )
-
-                    if (distance <= geofenceRadius) {
-                        onSuccess(true) // Pass true if within geofence
-                    } else {
-                        onSuccess(false) // Pass false if outside geofence
-                    }
+                    val userLatLng = LatLng(location.latitude, location.longitude)
+                    val isInsidePolygon = isPointInPolygon(userLatLng, polygonCoordinates)
+                    onSuccess(isInsidePolygon)
                 } else {
-                    onFailure("Unable to determine location") // Invoke onFailure if location is null
+                    onFailure("Failed to retrieve location.")
                 }
             }
-            .addOnFailureListener {
-                onFailure("Error fetching location: ${it.message}")
+        }
+
+        private fun isPointInPolygon(point: LatLng, polygon: List<LatLng>): Boolean {
+            var isInside = false
+            var j = polygon.size - 1
+            for (i in polygon.indices) {
+                if (point.latitude > polygon[i].latitude != point.latitude > polygon[j].latitude &&
+                    point.longitude < (polygon[j].longitude - polygon[i].longitude) * (point.latitude - polygon[i].latitude) / (polygon[j].latitude - polygon[i].latitude) + polygon[i].longitude
+                ) {
+                    isInside = !isInside
+                }
+                j = i
             }
+            return isInside
+        }
     }
-
-
-    private fun calculateDistance(
-        lat1: Double,
-        lon1: Double,
-        lat2: Double,
-        lon2: Double
-    ): Double {
-        return sqrt((lat1 - lat2).pow(2) + (lon1 - lon2).pow(2)) * 111_000 // Approx meters
-    }
-}
-//

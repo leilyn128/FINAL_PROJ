@@ -110,7 +110,12 @@ dependencies {
 
     implementation ("com.google.firebase:firebase-auth:21.0.5" )
     implementation ("com.google.firebase:firebase-firestore:24.4.3")// For Firestore
-    }
+
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.0")
+    implementation ("com.google.maps.android:maps-utils-ktx:2.2.0")
+
+}
+
 
 
 

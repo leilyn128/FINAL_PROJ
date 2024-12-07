@@ -1,6 +1,6 @@
 package com.example.firebaseauth.pages
 
-import AuthViewModel
+import AuthController
 import DTRRecordPage
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,13 +23,12 @@ fun AdminHomePage(
     modifier: Modifier = Modifier,
     navController: NavController,
     role: String,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthController = viewModel()
 ) {
     val context = LocalContext.current // Get context for GeofenceHelper
-    val geofenceHelper = GeofenceHelper(context) // Pass context to GeofenceHelper
+    val geofenceHelper = GeofenceHelper() // Pass context to GeofenceHelper
     var selectedIndex by remember { mutableStateOf(0) }
 
-    // Define navigation items with icons
     val navItems = listOf(
         NavItem("Geofence", Icons.Default.LocationOn),
         NavItem("DTR Records", Icons.Default.List),
@@ -51,19 +50,16 @@ fun AdminHomePage(
             }
         }
     ) { innerPadding ->
-        // Apply innerPadding to the modifier for each page
         when (selectedIndex) {
             0 -> {
-                // Admin Geofence Page
                 GeofencePage(
                     navController = navController
-                    // Apply padding here
                 )
             }
             1 -> {
 
                 DTRRecordPage(
-                    modifier = Modifier.padding(innerPadding) // Apply padding here
+                    modifier = Modifier.padding(innerPadding)
                 )
             }
             2 -> {
@@ -71,7 +67,7 @@ fun AdminHomePage(
                 AccountAdmin(
                     authViewModel = authViewModel,
                     navController = navController,
-                    modifier = Modifier.padding(innerPadding) // Apply padding here
+                    modifier = Modifier.padding(innerPadding)
                 )
             }
         }

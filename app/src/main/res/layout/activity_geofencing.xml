@@ -1,52 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    tools:context=".activity.GeofencingActivity">
 
-    <!-- Latitude Input -->
-    <EditText
-        android:id="@+id/latitudeInput"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:hint="Latitude"
-        android:inputType="numberDecimal"
-        android:padding="12dp" />
+    <!-- Map Fragment to display the map -->
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-    <!-- Longitude Input -->
-    <EditText
-        android:id="@+id/longitudeInput"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:hint="Longitude"
-        android:inputType="numberDecimal"
-        android:padding="12dp" />
-
-    <!-- Radius Input -->
-    <EditText
-        android:id="@+id/radiusInput"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:hint="Radius (meters)"
-        android:inputType="number"
-        android:padding="12dp" />
-
-    <!-- Button to Add Geofence -->
+    <!-- Button to save the polygon -->
     <Button
-        android:id="@+id/addGeofenceButton"
+        android:id="@+id/savePolygonButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Geofence"
-        android:layout_gravity="center" />
+        android:text="Save Polygon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginBottom="16dp"/>
 
-    <!-- RecyclerView to display geofences -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/geofenceList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp"
-        android:padding="8dp" />
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

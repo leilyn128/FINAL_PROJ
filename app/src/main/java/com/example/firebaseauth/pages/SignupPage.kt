@@ -1,24 +1,19 @@
 
 package com.example.firebaseauth.pages
 
-import AuthViewModel
-import android.util.Log
+import AuthController
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,23 +26,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.navigation.NavController
-import com.example.firebaseauth.viewmodel.AuthState
-//import com.example.firebaseauth.viewmodel.AuthViewModel
 import androidx.compose.ui.text.style.TextAlign
-//import androidx.compose.foundation.scrollable
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-//import com.example.firebaseauth.login.AccountType
 
 
 @Composable
 fun SignupPage(
     modifier: Modifier = Modifier,
     navController: NavController,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthController,
     onSignUpSuccess: () -> Unit
 ) {
-    // State for passwords (not part of UserModel)
+
 
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -168,13 +160,10 @@ fun SignupPage(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .padding(bottom = 16.dp)
-        )
-
-        {
-            Text(
-                text = "Sign Up",
-                fontSize = 20.sp
-            )
+                .height(52.dp),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(text = "Signup", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
         // Login link
@@ -185,7 +174,7 @@ fun SignupPage(
         ) {
             Text("Already have an account? ", fontSize = 20.sp)
             TextButton(onClick = { navController.navigate("login") }) {
-                Text("Login", fontSize = 20.sp, color = Color.Blue)
+                Text("Login", fontSize = 20.sp, color =MaterialTheme.colorScheme.primary)
             }
         }
         }

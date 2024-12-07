@@ -1,10 +1,10 @@
 package com.example.firebaseauth.pages
 
-import AuthViewModel
-import android.util.Log
+import AuthController
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.firebaseauth.viewmodel.AuthState
 
@@ -34,7 +32,7 @@ import com.example.firebaseauth.viewmodel.AuthState
 fun LoginPage(
     modifier: Modifier = Modifier,
     navController: NavController,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthController,
     onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -48,17 +46,14 @@ fun LoginPage(
     LaunchedEffect(authState) {
         when (val state = authState) {
             is AuthState.Authenticated -> {
-                // Perform navigation based on role (admin or employee)
                 val userRole = authViewModel.userRole.value
                 when (userRole) {
                     "admin" -> {
-                        Log.d("Auth", "Admin authenticated. Navigating to AdminHome.")
                         navController.navigate("adminHome") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
                     "employee" -> {
-                        Log.d("Auth", "Employee authenticated. Navigating to HomePage.")
                         navController.navigate("homePage") {
                             popUpTo("login") { inclusive = true }
                         }
@@ -66,11 +61,9 @@ fun LoginPage(
                 }
             }
             is AuthState.Error -> {
-                Log.e("Auth", "Error: ${state.message}")
                 Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
             }
             else -> {
-                Log.d("Auth", "Unauthenticated or other state: $state")
             }
         }
     }
@@ -143,9 +136,12 @@ fun LoginPage(
                         Toast.makeText(context, "Fields cannot be empty", Toast.LENGTH_SHORT).show()
                     }
                 },
-                modifier = Modifier.fillMaxWidth() // This makes the button as wide as the text fields
+                modifier = Modifier
+                    .fillMaxWidth() // This makes the button as wide as the text fields
+                    .height(52.dp), // Match the height of the text fields
+                shape = RoundedCornerShape(8.dp) // Set the corner radius to match the text fields
             ) {
-                Text(text = "Login", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Login", fontSize = 24.sp, fontWeight = FontWeight.Bold)
             }
 
             // Signup Option

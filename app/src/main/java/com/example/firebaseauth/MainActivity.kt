@@ -1,6 +1,6 @@
 package com.example.firebaseauth
 
-import AuthViewModel
+import AuthController
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,17 +18,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val authViewModel: AuthViewModel by viewModels() // ViewModel scoped to Activity lifecycle
+        val authViewModel: AuthController by viewModels()
 
-        // MutableState to hold the user's current location
         val currentLocation = mutableStateOf<LatLng?>(null)
 
-        // Initialize LocationHelper with context and location callback
         locationHelper = LocationHelper(this) { latLng ->
             currentLocation.value = latLng
         }
 
-        // Start location updates
         locationHelper.startLocationUpdates()
 
         setContent {
@@ -49,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent(
-    authViewModel: AuthViewModel,
+    authViewModel: AuthController,
     currentLocation: LatLng?
 ) {
     val navController = rememberNavController()

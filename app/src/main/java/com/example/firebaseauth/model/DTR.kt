@@ -4,8 +4,8 @@ import java.util.Date
 
 
 data class DTRRecord(
-    val email: String? = null,           // Use nullable types with default values
-    val date: Date? = null,              // Firestore can handle `Date` type
+    val email: String? = " ",
+    val date: Date? = Date(),
     val morningArrival: Date? = null,
     val morningDeparture: Date? = null,
     val afternoonArrival: Date? = null,

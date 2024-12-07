@@ -8,11 +8,12 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
+import com.google.android.gms.maps.model.LatLng
 
 class GeofenceReceiver : BroadcastReceiver() {
 
     private val db = FirebaseFirestore.getInstance()
+    private val geofenceHelper = GeofenceHelper() // Initialize the helper
 
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -30,24 +31,39 @@ class GeofenceReceiver : BroadcastReceiver() {
                 return
             }
 
-            // Fetch geofence data from Firebase
             db.collection("geofences")
                 .document("bisu_clarin")
                 .get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
-                        val lat = document.getDouble("latitude") ?: 0.0
-                        val lon = document.getDouble("longitude") ?: 0.0
-                        val radius = document.getDouble("radius") ?: 0.0
+                        val points = document.get("polygonPoints") as? List<Map<String, Double>>
 
-                        when (transition) {
-                            Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                                // Handle entry to the geofence area
-                                handleGeofenceEntry(context)
+                        points?.let { polygonPoints ->
+                            val polygonLatLngList = polygonPoints.map { point ->
+                                LatLng(point["latitude"] ?: 0.0, point["longitude"] ?: 0.0)
                             }
-                            Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                                // Handle exit from the geofence area
-                                handleGeofenceExit(context)
+
+                            val userLocation = it.triggeringLocation
+
+                            if (userLocation != null) {
+                                val userLatLng = LatLng(userLocation.latitude, userLocation.longitude)
+
+                                val isInside = geofenceHelper.checkUserInsidePolygon(userLatLng, polygonLatLngList)
+
+                                when (transition) {
+                                    Geofence.GEOFENCE_TRANSITION_ENTER -> {
+                                        if (isInside) {
+                                            handleGeofenceEntry(context)
+                                        }
+                                    }
+                                    Geofence.GEOFENCE_TRANSITION_EXIT -> {
+                                        if (!isInside) {
+                                            handleGeofenceExit(context)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(context, "Location is null", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -59,15 +75,11 @@ class GeofenceReceiver : BroadcastReceiver() {
     }
 
     private fun handleGeofenceEntry(context: Context) {
-        // You can perform any action you want when the user enters the geofenced area
         Toast.makeText(context, "Entered geofenced area.", Toast.LENGTH_SHORT).show()
-        // Example: You could trigger a notification, log an event, or update the UI
     }
 
     private fun handleGeofenceExit(context: Context) {
-        // You can perform any action you want when the user exits the geofenced area
         Toast.makeText(context, "Exited geofenced area.", Toast.LENGTH_SHORT).show()
-        // Example: Log the event, send a notification, etc.
     }
 
     private fun getEmailFromFirebaseAuth(): String? {

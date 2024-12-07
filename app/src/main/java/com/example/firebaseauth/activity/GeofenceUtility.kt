@@ -1,11 +1,12 @@
 package com.example.firebaseauth.activity
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.android.gms.maps.model.LatLng
 
 object GeofenceUtility {
 
     fun fetchGeofenceData(
-        onSuccess: (latitude: Double, longitude: Double, radius: Double) -> Unit,
+        onSuccess: (List<LatLng>) -> Unit,
         onFailure: (String) -> Unit
     ) {
         val db = FirebaseFirestore.getInstance()
@@ -14,10 +15,16 @@ object GeofenceUtility {
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val latitude = document.getDouble("latitude") ?: 0.0
-                    val longitude = document.getDouble("longitude") ?: 0.0
-                    val radius = document.getDouble("radius") ?: 0.0
-                    onSuccess(latitude, longitude, radius)
+                    val points = document.get("polygonPoints") as? List<Map<String, Double>>
+
+                    if (points != null) {
+                        val polygonLatLngList = points.map { point ->
+                            LatLng(point["latitude"] ?: 0.0, point["longitude"] ?: 0.0)
+                        }
+                        onSuccess(polygonLatLngList)
+                    } else {
+                        onFailure("Polygon points not found")
+                    }
                 } else {
                     onFailure("Geofence data not found")
                 }

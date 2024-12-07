@@ -1,9 +1,6 @@
 package com.example.firebaseauth.pages
 
-import DTRViewModel
-import RecordsDialog
-import android.app.Activity
-import android.content.Context
+import DTRController
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -30,9 +27,11 @@ import androidx.compose.ui.unit.sp
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.example.firebaseauth.activity.GeofenceUtility
 import com.example.firebaseauth.activity.GeofenceUtils
+
+
 @Composable
 fun DTR(
-    viewModel: DTRViewModel,
+    viewModel: DTRController,
     email: String,
     fusedLocationClient: FusedLocationProviderClient,
     onTimeStamped: () -> Unit // Callback to notify that time has been stamped
@@ -45,52 +44,28 @@ fun DTR(
     val dtrRecords = viewModel.dtrRecords.collectAsState().value
     var showRecordsDialog by remember { mutableStateOf(false) }
 
-
     fun getCurrentDate(): String {
         val calendar = Calendar.getInstance()
         return "${calendar.get(Calendar.YEAR)}-${calendar.get(Calendar.MONTH) + 1}-${calendar.get(Calendar.DAY_OF_MONTH)}"
     }
 
-    // Fetch the DTR record for the current user on component load
-    LaunchedEffect(key1 = email) {
-        val db = FirebaseFirestore.getInstance()
-        val recordId = "${email}-${getCurrentDate()}"
-
-        db.collection("dtr_records")
-            .document(recordId)
-            .get()
-            .addOnSuccessListener { documentSnapshot ->
-                if (documentSnapshot.exists()) {
-                    val fetchedRecord = documentSnapshot.toObject(DTRRecord::class.java)
-                    record.value = fetchedRecord
-                } else {
-                    // No record for today, create an empty one to display
-                    record.value = DTRRecord(
-                        email = email,
-                        date = currentTime,
-                        morningArrival = null,
-                        afternoonArrival = null,
-                        morningDeparture = null,
-                        afternoonDeparture = null
-                    )
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(context, "Failed to fetch DTR record.", Toast.LENGTH_SHORT).show()
-            }
+    // Fetch records on component load
+    LaunchedEffect(email) {
+        viewModel.fetchDTRRecords(email) // Fetch records for the given email
     }
-
-    // Handle geofence validation, clock-in, and clock-out logic
+        // Handle geofence validation, clock-in, and clock-out logic
     LaunchedEffect(key1 = Unit) {
         GeofenceUtility.fetchGeofenceData(
-            onSuccess = { latitude, longitude, radius ->
+            onSuccess = { polygonCoordinates ->
+                Log.d("GeofenceData", "Fetched coordinates: $polygonCoordinates")
+
                 GeofenceUtils.validateGeofenceAccess(
                     fusedLocationClient,
-                    latitude,
-                    longitude,
-                    radius,
+                    polygonCoordinates,
                     context,
                     onSuccess = { insideGeofence ->
+                        Log.d("GeofenceValidation", "Inside geofence: $insideGeofence")
+
                         val db = FirebaseFirestore.getInstance()
                         val recordId = "${email}-${getCurrentDate()}"
 
@@ -134,7 +109,7 @@ fun DTR(
                                             }
                                     }
                                 } else {
-                                    // Clock-Out Logic (Prevent clock-out without clock-in)
+                                    // Clock-Out Logic (when exiting the geofence or manually clocking out)
                                     if (currentHour < 12) {
                                         if (currentRecord?.morningArrival == null) {
                                             Toast.makeText(context, "Please clock-in first before clocking out in the morning.", Toast.LENGTH_SHORT).show()
@@ -183,8 +158,6 @@ fun DTR(
         )
     }
 
-
-
     // Always display the DTRCard
     Column(
         modifier = Modifier
@@ -194,21 +167,29 @@ fun DTR(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         DTRCustomHeader(onViewRecordsClick = {
-            Log.d("DTR", "View Records clicked")
+            showRecordsDialog = true // Open the dialog when the icon is clicked
         })
 
-        record.value?.let {
-            DTRCard(record = it)
-        } ?: CircularProgressIndicator() // Show loading until record is fetched
+        if (dtrRecords.isNotEmpty()) {
+            DTRCard(record = dtrRecords.last()) // Display the most recent record
+        } else {
+            Text("No records available.")
+        }
     }
     if (showRecordsDialog) {
         RecordsDialog(
             records = dtrRecords,
             onDismiss = { showRecordsDialog = false }
         )
+
+        record.value?.let {
+            DTRCard(record = it)
+        } ?: CircularProgressIndicator() // Show loading until record is fetched
     }
 
+
 }
+
 
 
 
@@ -230,6 +211,7 @@ fun DTRCustomHeader(onViewRecordsClick: () -> Unit) {
                 .size(75.dp)
                 .align(Alignment.CenterStart)
                 .padding(start = 16.dp)
+
         )
 
         Text(
@@ -240,7 +222,9 @@ fun DTRCustomHeader(onViewRecordsClick: () -> Unit) {
         )
 
         IconButton(
-            onClick = { onViewRecordsClick() },
+            onClick = {
+                onViewRecordsClick() // This should set showRecordsDialog to true in parent
+            },
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 16.dp)
@@ -249,6 +233,7 @@ fun DTRCustomHeader(onViewRecordsClick: () -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun DTRCard(record: DTRRecord) {
@@ -311,6 +296,8 @@ fun DTRCard(record: DTRRecord) {
 
 @Composable
 fun RecordsDialog(records: List<DTRRecord>, onDismiss: () -> Unit) {
+    Log.d("DTR", "Displaying DTR records dialog with ${records.size} records.")
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {

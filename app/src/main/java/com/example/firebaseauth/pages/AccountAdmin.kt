@@ -1,7 +1,7 @@
 package com.example.firebaseauth.pages
 
 
-import AuthViewModel
+import AuthController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,7 +26,7 @@ import com.example.firebaseauth.Screen
 @Composable
 fun AccountAdmin(
     modifier: Modifier = Modifier,
-    authViewModel: AuthViewModel = viewModel(),
+    authViewModel: AuthController = viewModel(),
     navController: NavController
 ) {
     val authState = authViewModel.authState.observeAsState(AuthState.Unauthenticated)
@@ -76,7 +76,6 @@ fun AccountAdmin(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Log Out button below the details
             Button(
                 onClick = {
                     authViewModel.signOut()

@@ -1,7 +1,7 @@
 package com.example.firebaseauth.pages
 
-import AuthViewModel
-import DTRViewModel
+import AuthController
+import DTRController
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,10 +30,10 @@ fun HomePage(
     modifier: Modifier = Modifier,
     navController: NavController,
     role: String,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthController = viewModel()
 ) {
     val authState by authViewModel.authState.observeAsState()
-    val dtrViewModel: DTRViewModel = viewModel()
+    val dtrViewModel: DTRController = viewModel()
 
     val userRole = authViewModel.userDetails.value?.role ?: "employee"
 
@@ -41,7 +41,6 @@ fun HomePage(
     var timeInput by remember { mutableStateOf("") }
     var currentLocation by remember { mutableStateOf<LatLng?>(null) }
 
-    // Simulate fetching the current location
     LaunchedEffect(Unit) {
         currentLocation = LatLng(37.7749, -122.4194) // Example location
     }
@@ -84,7 +83,7 @@ fun HomePage(
         ContentScreen(
             modifier = Modifier.padding(innerPadding),
             selectedIndex = selectedIndex,
-            userRole = userRole, // Pass user role to ContentScreen
+            userRole = userRole,
             authViewModel = authViewModel,
             navController = navController,
             currentLocation = currentLocation,
@@ -98,10 +97,10 @@ fun HomePage(
 fun ContentScreen(
     modifier: Modifier = Modifier,
     selectedIndex: Int,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthController,
     navController: NavController,
     currentLocation: LatLng?,
-    dtrViewModel: DTRViewModel,
+    dtrViewModel: DTRController,
     userRole: String
 ) {
     val context = LocalContext.current
@@ -109,9 +108,7 @@ fun ContentScreen(
 
     val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
 
-    // Define the onTimeStamped callback
     val onTimeStamped: () -> Unit = {
-        // Logic for when the time is successfully stamped
         Log.d("ContentScreen", "Time has been stamped!")
     }
 
@@ -126,7 +123,7 @@ fun ContentScreen(
                     viewModel = dtrViewModel,
                     email = email,
                     fusedLocationClient = fusedLocationClient,
-                    onTimeStamped = onTimeStamped // Pass the callback here
+                    onTimeStamped = onTimeStamped
                 )
             } ?: run {
                 Log.e("ContentScreen", "No logged-in user's email found.")
@@ -141,8 +138,5 @@ fun ContentScreen(
             )
         }
 
-        3 -> {
-            // You can handle the case for index 3 if necessary
-        }
     }
 }

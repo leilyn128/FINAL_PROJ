@@ -1,7 +1,7 @@
 
 package com.example.firebaseauth.pages
 
-import AuthViewModel
+import AuthController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,20 +22,19 @@ import androidx.navigation.NavController
 import com.example.firebaseauth.viewmodel.AuthState
 import com.example.firebaseauth.R
 import com.example.firebaseauth.Screen
-import com.example.firebaseauth.viewmodel.ProfileViewModel
+import com.example.firebaseauth.viewmodel.ProfileViewController
 
 
 @Composable
 fun Account(
     modifier: Modifier = Modifier,
-    authViewModel: AuthViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel(),
+    authViewModel: AuthController = viewModel(),
+    profileViewModel: ProfileViewController = viewModel(),
     navController: NavController
 ) {
     val authState = authViewModel.authState.observeAsState(AuthState.Unauthenticated)
     LaunchedEffect(authState.value) {
         if (authState.value is AuthState.Unauthenticated) {
-            // Navigate to login screen after successful logout
             navController.navigate(Screen.Login.route) {
                 popUpTo(Screen.Login.route) { inclusive = true }
                 launchSingleTop = true // Prevent creating a new instance of the login page if already on it
@@ -51,20 +50,20 @@ fun Account(
         profileViewModel.loadUserProfile()
     }
 
-    val userProfileState = profileViewModel.userProfile.observeAsState() // Observe the profile state
-    val userProfile = userProfileState.value // Extract the value from the State object
+    val userProfileState = profileViewModel.userProfile.observeAsState()
+    val userProfile = userProfileState.value
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFF5F8C60))
             .padding(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.Center, // Center the content vertically
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Profile Picture
         Image(
-            painter = painterResource(id = R.drawable.img_1), // Replace with your profile picture resource
+            painter = painterResource(id = R.drawable.img_1),
             contentDescription = "Profile Picture",
             modifier = Modifier.size(100.dp)
         )
@@ -83,7 +82,7 @@ fun Account(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Log Out Button
+
         Button(
             onClick = {
                 authViewModel.signOut()

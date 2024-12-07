@@ -1,6 +1,4 @@
 import android.app.Application
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
@@ -9,17 +7,14 @@ import androidx.lifecycle.MutableLiveData
 import com.example.firebaseauth.model.UserModel
 import com.example.firebaseauth.viewmodel.AuthState
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.State
 import androidx.navigation.NavController
 import com.example.firebaseauth.Screen
 
-//import com.example.firebaseauth.login.AccountType
-//import com.google.android.gms.common.internal.AccountType
 
 
-class AuthViewModel(application: Application) : AndroidViewModel(application) {
+class AuthController(application: Application) : AndroidViewModel(application) {
 
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -60,12 +55,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateAuthState(newState: AuthState) {
-        _authState.value = newState
-    }
-
-
-
     fun updateUser(field: String, value: String) {
         userState.value = when (field) {
             "email" -> userState.value.copy(email = value)
@@ -89,13 +78,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     val userEmail = auth.currentUser?.email ?: ""
                     val role = assignRoleBasedOnEmail(userEmail)
 
-                    // Update authState to reflect authenticated state
                     _authState.value = AuthState.Authenticated(auth.currentUser!!)
 
-                    // Log the successful login and the assigned role
-                    Log.d("AuthViewModel", "Login successful for: $userEmail with role: $role")
-
-                    // Immediately navigate based on the role
                     when (role) {
                         "admin" -> {
                             Log.d("AuthViewModel", "Navigating to adminHomePage")
@@ -124,7 +108,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun assignRoleBasedOnEmail(email: String?): String {
-        return if (email == "admin10@example.com") { // Replace with the actual admin email
+        return if (email == "admin10@example.com") {
             "admin"
         } else {
             "employee"

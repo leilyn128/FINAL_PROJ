@@ -20,6 +20,7 @@ class GeofenceAdapter(private val geofences: MutableList<String>) : RecyclerView
         holder.bind(geofences[position])
     }
 
+
     override fun getItemCount(): Int = geofences.size
 
     fun addGeofence(geofence: String) {
