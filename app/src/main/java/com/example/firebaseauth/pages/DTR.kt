@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.firebaseauth.activity.DTRActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.example.firebaseauth.activity.GeofenceUtility
 import com.example.firebaseauth.activity.GeofenceUtils
@@ -37,125 +38,46 @@ fun DTR(
     onTimeStamped: () -> Unit
 ) {
     val context = LocalContext.current
-    val currentTime = Calendar.getInstance().time
-    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val record = remember { mutableStateOf<DTRRecord?>(null) }
-
     val dtrRecords = viewModel.dtrRecords.collectAsState().value
     var showRecordsDialog by remember { mutableStateOf(false) }
-
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-    // Find today's record in dtrRecords
     val todaysRecord = dtrRecords.find { record ->
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(record.date) == today
     }
+    val dtrLogic = DTRActivity(FirebaseFirestore.getInstance())
 
-    fun getCurrentDate(): String {
-        val calendar = Calendar.getInstance()
-        return "${calendar.get(Calendar.YEAR)}-${calendar.get(Calendar.MONTH) + 1}-${calendar.get(Calendar.DAY_OF_MONTH)}"
+
+
+    LaunchedEffect(todaysRecord) {
+        record.value = todaysRecord
+        onTimeStamped()
     }
 
-    // Fetch records on component load
     LaunchedEffect(email) {
-        viewModel.fetchDTRRecords(email) // Fetch records for the given email
+        viewModel.fetchDTRRecords(email) // Ensure you fetch updated records on email change
     }
 
-    // Handle geofence validation, clock-in, and clock-out logic
     LaunchedEffect(key1 = Unit) {
         GeofenceUtility.fetchGeofenceData(
             onSuccess = { polygonCoordinates ->
-
                 GeofenceUtils.validateGeofenceAccess(
                     fusedLocationClient,
                     polygonCoordinates,
                     context,
                     onSuccess = { insideGeofence ->
-
-                        val db = FirebaseFirestore.getInstance()
-                        val recordId = "${email}-${getCurrentDate()}"
-
-                        db.collection("dtr_records")
-                            .document(recordId)
-                            .get()
-                            .addOnSuccessListener { documentSnapshot ->
-                                val currentRecord = documentSnapshot.toObject(DTRRecord::class.java)
-
-                                if (insideGeofence) {
-                                    // Clock-In Logic
-                                    if (currentHour < 12 && currentRecord?.morningArrival == null) {
-                                        val updatedRecord = currentRecord?.copy(
-                                            morningArrival = currentTime
-                                        ) ?: DTRRecord(
-                                            email = email,
-                                            date = currentTime,
-                                            morningArrival = currentTime
-                                        )
-                                        db.collection("dtr_records").document(recordId)
-                                            .set(updatedRecord)
-                                            .addOnSuccessListener {
-                                                Toast.makeText(context, "Morning clock-in successful!", Toast.LENGTH_SHORT).show()
-                                                record.value = updatedRecord
-                                                viewModel.fetchDTRRecords(email) // Ensure UI updates
-                                                onTimeStamped()
-                                            }
-                                    } else if (currentHour >= 12 && currentRecord?.afternoonArrival == null) {
-                                        val updatedRecord = currentRecord?.copy(
-                                            afternoonArrival = currentTime
-                                        ) ?: DTRRecord(
-                                            email = email,
-                                            date = currentTime,
-                                            afternoonArrival = currentTime
-                                        )
-                                        db.collection("dtr_records").document(recordId)
-                                            .set(updatedRecord)
-                                            .addOnSuccessListener {
-                                                Toast.makeText(context, "Afternoon clock-in successful!", Toast.LENGTH_SHORT).show()
-                                                record.value = updatedRecord
-                                                viewModel.fetchDTRRecords(email) // Ensure UI updates
-                                                onTimeStamped()
-                                            }
-                                    }
-                                } else {
-                                    // Clock-Out Logic
-                                    if (currentHour < 12) {
-                                        if (currentRecord?.morningArrival == null) {
-                                            Toast.makeText(context, "Please clock-in first before clocking out in the morning.", Toast.LENGTH_SHORT).show()
-                                        } else if (currentRecord?.morningDeparture == null) {
-                                            val updatedRecord = currentRecord?.copy(
-                                                morningDeparture = currentTime
-                                            )
-                                            db.collection("dtr_records").document(recordId)
-                                                .set(updatedRecord!!)
-                                                .addOnSuccessListener {
-                                                    Toast.makeText(context, "Morning clock-out successful!", Toast.LENGTH_SHORT).show()
-                                                    record.value = updatedRecord
-                                                    viewModel.fetchDTRRecords(email) // Ensure UI updates
-                                                    onTimeStamped()
-                                                }
-                                        }
-                                    } else {
-                                        if (currentRecord?.afternoonArrival == null) {
-                                            Toast.makeText(context, "Please clock-in first before clocking out in the afternoon.", Toast.LENGTH_SHORT).show()
-                                        } else if (currentRecord?.afternoonDeparture == null) {
-                                            val updatedRecord = currentRecord?.copy(
-                                                afternoonDeparture = currentTime
-                                            )
-                                            db.collection("dtr_records").document(recordId)
-                                                .set(updatedRecord!!)
-                                                .addOnSuccessListener {
-                                                    Toast.makeText(context, "Afternoon clock-out successful!", Toast.LENGTH_SHORT).show()
-                                                    record.value = updatedRecord
-                                                    viewModel.fetchDTRRecords(email) // Ensure UI updates
-                                                    onTimeStamped()
-                                                }
-                                        }
-                                    }
-                                }
+                        dtrLogic.handleClockInOut(
+                            context = context,
+                            email = email,
+                            currentTime = Calendar.getInstance().time,
+                            currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+                            insideGeofence = insideGeofence,
+                            onTimeStamped = {
+                                // Fetch the updated record after time-stamp
+                                viewModel.fetchDTRRecords(email)
+                                onTimeStamped() // Run any additional logic if needed
                             }
-                            .addOnFailureListener {
-                                Toast.makeText(context, "Error checking DTR record.", Toast.LENGTH_SHORT).show()
-                            }
+                        )
                     },
                     onFailure = { errorMessage ->
                         Toast.makeText(context, "Geofence validation failed: $errorMessage", Toast.LENGTH_SHORT).show()
@@ -168,7 +90,7 @@ fun DTR(
         )
     }
 
-    // Always display the DTRCard
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -188,18 +110,14 @@ fun DTR(
         }
 
     }
+
+    // Show dialog with records
     if (showRecordsDialog) {
         RecordsDialog(
             records = dtrRecords,
             onDismiss = { showRecordsDialog = false }
         )
-
-        record.value?.let {
-            DTRCard(record = it)
-        } ?: CircularProgressIndicator() // Show loading until record is fetched
     }
-
-
 }
 
 
@@ -305,10 +223,12 @@ fun DTRCard(record: DTRRecord) {
         }
     }
 }
-
 @Composable
 fun RecordsDialog(records: List<DTRRecord>, onDismiss: () -> Unit) {
     Log.d("DTR", "Displaying DTR records dialog with ${records.size} records.")
+
+    // Sort the records by date in descending order so the latest record appears on top
+    val sortedRecords = records.sortedByDescending { it.date }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -320,10 +240,10 @@ fun RecordsDialog(records: List<DTRRecord>, onDismiss: () -> Unit) {
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                if (records.isEmpty()) {
+                if (sortedRecords.isEmpty()) {
                     Text("No records available.", style = MaterialTheme.typography.bodyLarge)
                 } else {
-                    records.forEach { record ->
+                    sortedRecords.forEach { record ->
                         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val arrivalTime = record.morningArrival?.let {
                             SimpleDateFormat("HH:mm", Locale.getDefault()).format(it)

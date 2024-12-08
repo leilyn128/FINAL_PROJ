@@ -82,7 +82,7 @@ fun Account(
 
         Button(
             onClick = {
-                authViewModel.signOut()
+                authViewModel.signOut(navController)
             },
             modifier = Modifier
                 .fillMaxWidth(0.9f)

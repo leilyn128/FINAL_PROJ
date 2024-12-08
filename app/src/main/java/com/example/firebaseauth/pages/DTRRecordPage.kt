@@ -1,3 +1,5 @@
+package com.example.firebaseauth.pages
+
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,14 +20,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.firebaseauth.model.DTRRecord
 
-data class DTRRecord(
-    val date: Date = Date(),
-    val morningArrival: Date? = null,
-    val morningDeparture: Date? = null,
-    val afternoonArrival: Date? = null,
-    val afternoonDeparture: Date? = null
-)
 
 @Composable
 fun DTRRecordPage(modifier: Modifier = Modifier) {
@@ -86,7 +82,7 @@ fun DTRRecordPage(modifier: Modifier = Modifier) {
                     fetchDTRRecordsForEmail(email, dtrRecords)
                 }
 
-                RecordsDialog(
+                RecordsDialogAdmin(
                     records = dtrRecords,
                     onDismiss = { showDialog.value = false }
                 )
@@ -159,7 +155,9 @@ suspend fun fetchDTRRecordsForEmail(email: String, dtrRecords: MutableList<DTRRe
 }
 
 @Composable
-fun RecordsDialog(records: List<DTRRecord>, onDismiss: () -> Unit) {
+fun RecordsDialogAdmin(records: List<DTRRecord>, onDismiss: () -> Unit) {
+    val sortedRecords = records.sortedByDescending { it.date }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -170,10 +168,10 @@ fun RecordsDialog(records: List<DTRRecord>, onDismiss: () -> Unit) {
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                if (records.isEmpty()) {
+                if (sortedRecords.isEmpty()) {
                     Text("No records available.", style = TextStyle(fontSize = 16.sp))
                 } else {
-                    records.forEach { record ->
+                    sortedRecords.forEach { record ->
                         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val arrivalTime = record.morningArrival?.let {
                             SimpleDateFormat("HH:mm", Locale.getDefault()).format(it)

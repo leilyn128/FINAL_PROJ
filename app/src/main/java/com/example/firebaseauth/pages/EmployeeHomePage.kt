@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.firebaseauth.viewmodel.AuthState
 import com.example.firebaseauth.ui.theme.NavItem
-import com.example.googlemappage.MapPage
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng

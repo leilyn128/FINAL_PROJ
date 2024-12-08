@@ -1,7 +1,7 @@
 package com.example.firebaseauth.pages
 
 import AuthController
-import DTRRecordPage
+import com.example.firebaseauth.pages.DTRRecordPage
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -25,8 +25,7 @@ fun AdminHomePage(
     role: String,
     authViewModel: AuthController = viewModel()
 ) {
-    val context = LocalContext.current // Get context for GeofenceHelper
-    val geofenceHelper = GeofenceHelper() // Pass context to GeofenceHelper
+
     var selectedIndex by remember { mutableStateOf(0) }
 
     val navItems = listOf(

@@ -1,4 +1,4 @@
-package com.example.googlemappage
+package com.example.firebaseauth.pages
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -35,7 +35,6 @@ fun MapPage(
     var geofencePoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
 
     val context = LocalContext.current
-    val activity = context as? ComponentActivity
     val locationHelper = remember {
         LocationHelper(context) { location ->
             currentLocation = location
@@ -57,7 +56,7 @@ fun MapPage(
         val firestore = FirebaseFirestore.getInstance()
         firestore.collection("geofences")
             .document("bisu_clarin")
-            .get() // We query the document itself
+            .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val points = document.get("polygonPoints") as? List<Map<String, Double>>

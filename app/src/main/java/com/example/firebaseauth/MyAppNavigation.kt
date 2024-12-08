@@ -19,13 +19,15 @@ import com.example.firebaseauth.pages.LoginPage
 import com.example.firebaseauth.viewmodel.AuthState
 import com.google.android.gms.maps.model.LatLng
 import androidx.compose.runtime.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.firebaseauth.pages.Account
 import com.example.firebaseauth.pages.AccountAdmin
 import com.example.firebaseauth.pages.AdminHomePage
 import com.example.firebaseauth.pages.DTR
 import com.example.firebaseauth.pages.SignupPage
-import com.example.googlemappage.MapPage
+import com.example.firebaseauth.pages.MapPage
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 
@@ -59,6 +61,7 @@ fun MyAppNavigation(
         )
     }
 
+    // Set the start destination based on the authentication state
     val startDestination = when (authState) {
         is AuthState.EmployeeAuthenticated -> Screen.HomePage.route
         is AuthState.AdminAuthenticated -> Screen.AdminHomePage.route
@@ -69,7 +72,7 @@ fun MyAppNavigation(
         bottomBar = {
             val currentRoute = navController.currentBackStackEntry?.destination?.route
             if (currentRoute in listOf("home", "map", "Dtr")) {
-
+                // Add any bottom bar content here
             }
         },
         content = { innerPadding ->
@@ -78,6 +81,7 @@ fun MyAppNavigation(
                 startDestination = startDestination,
                 modifier = modifier.padding(innerPadding)
             ) {
+                // Login Page
                 composable(Screen.Login.route) {
                     LoginPage(
                         modifier = modifier,
@@ -88,6 +92,7 @@ fun MyAppNavigation(
                             val role = authViewModel.assignRoleBasedOnEmail(userEmail)
 
 
+                            // Log the role assignment and navigate accordingly
                             Log.d("Login", "User role: $role")
 
                             when (role) {
@@ -179,6 +184,8 @@ fun MyAppNavigation(
                     }
                 }
 
+
+
                 // Map Page
                 composable(Screen.Map.route) {
                     MapPage(modifier = modifier)
@@ -186,4 +193,5 @@ fun MyAppNavigation(
             }
         }
     )
+
 }

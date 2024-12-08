@@ -78,7 +78,7 @@ fun AccountAdmin(
 
             Button(
                 onClick = {
-                    authViewModel.signOut()
+                    authViewModel.signOut(navController)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

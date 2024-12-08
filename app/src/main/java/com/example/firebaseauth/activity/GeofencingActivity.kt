@@ -20,6 +20,7 @@ class GeofencingActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
     private val vertices = mutableListOf<LatLng>()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_geofencing)

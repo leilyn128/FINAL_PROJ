@@ -13,7 +13,5 @@ sealed class AuthState {
     data class EmployeeAuthenticated(val user: FirebaseUser) : AuthState()
     data class Error(val message: String) : AuthState()
 
-    sealed class AuthResult {
-        object LoggedOut : AuthResult()
-    }
+
 }

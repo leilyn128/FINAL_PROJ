@@ -8,43 +8,28 @@ import com.example.firebaseauth.model.UserModel
 import com.example.firebaseauth.viewmodel.AuthState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.compose.runtime.State
 import androidx.navigation.NavController
 import com.example.firebaseauth.Screen
+
 
 
 
 class AuthController(application: Application) : AndroidViewModel(application) {
 
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-
     private val _authState = MutableLiveData<AuthState>(AuthState.Unauthenticated)
     val authState: LiveData<AuthState> get() = _authState
-
     private val _userDetails = MutableLiveData<UserModel>(UserModel())
     val userDetails: LiveData<UserModel> get() = _userDetails
-
-    private val _userModel = mutableStateOf(UserModel())
-    val userModel: State<UserModel> = _userModel
-
-    val user = FirebaseAuth.getInstance().currentUser
     private val _userRole = MutableLiveData<String>()
     val userRole: LiveData<String> get() = _userRole
-
-
-    val authStatus: MutableLiveData<AuthState.AuthResult> = MutableLiveData()
-    val errorMessage: MutableLiveData<String> = MutableLiveData()
-    val isLoading: MutableLiveData<Boolean> = MutableLiveData()
-
-    val isAuthenticated: Boolean
-        get() = FirebaseAuth.getInstance().currentUser != null
+    var userState = mutableStateOf(UserModel())
 
     init {
         checkAuthState()
     }
 
-    var userState = mutableStateOf(UserModel())
+
 
     private fun checkAuthState() {
         val user = auth.currentUser
@@ -54,6 +39,7 @@ class AuthController(application: Application) : AndroidViewModel(application) {
             _authState.value = AuthState.Unauthenticated
         }
     }
+
 
     fun updateUser(field: String, value: String) {
         userState.value = when (field) {
@@ -78,24 +64,35 @@ class AuthController(application: Application) : AndroidViewModel(application) {
                     val userEmail = auth.currentUser?.email ?: ""
                     val role = assignRoleBasedOnEmail(userEmail)
 
+                    // Update authState to reflect authenticated state
                     _authState.value = AuthState.Authenticated(auth.currentUser!!)
 
+                    // Log the successful login and the assigned role
+                    Log.d("AuthViewModel", "Login successful for: $userEmail with role: $role")
+
+                    // Immediately navigate based on the role
                     when (role) {
                         "admin" -> {
+                            Log.d("AuthViewModel", "Navigating to adminHomePage")
                             navController.navigate(Screen.AdminHomePage.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         }
+
                         "employee" -> {
+                            Log.d("AuthViewModel", "Navigating to homePage")
                             navController.navigate(Screen.HomePage.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         }
 
+                        else -> {
+                            Log.e("AuthViewModel", "Unknown role: $role")
                         }
-
+                    }
+                } else {
+                    Log.e("AuthViewModel", "Login failed: ${task.exception?.message}")
                 }
-
             }
             .addOnFailureListener { exception ->
                 Log.e("AuthViewModel", "Error during login: ${exception.message}")
@@ -104,15 +101,16 @@ class AuthController(application: Application) : AndroidViewModel(application) {
 
 
     fun assignRoleBasedOnEmail(email: String?): String {
-        return if (email == "admin10@example.com") {
+        Log.d("AuthController", "Assigning role for email: $email")
+
+        return if (email == "admin10@example.com") { // Replace with the actual admin email
             "admin"
         } else {
             "employee"
         }
 
 
-
-     }
+    }
 
     fun signup(
         email: String,
@@ -149,7 +147,9 @@ class AuthController(application: Application) : AndroidViewModel(application) {
                             }
                     }
                 } else {
-                    onSignUpFailure(task.exception?.message ?: "Unknown error occurred during sign-up.")
+                    onSignUpFailure(
+                        task.exception?.message ?: "Unknown error occurred during sign-up."
+                    )
                 }
             }
             .addOnFailureListener { e ->
@@ -157,15 +157,16 @@ class AuthController(application: Application) : AndroidViewModel(application) {
             }
     }
 
-        fun signOut() {
-            try {
-                auth.signOut()
-                _authState.value = AuthState.Unauthenticated
-                authStatus.value = AuthState.AuthResult.LoggedOut
-            } catch (e: Exception) {
-                errorMessage.value = "Error logging out: ${e.message}"
+    fun signOut(navController: NavController) {
+        try {
+            auth.signOut()
+            _authState.value = AuthState.Unauthenticated
+            Log.d("AuthController", "Auth state after logout: ${_authState.value}")
+            navController.navigate(Screen.Login.route) {
+                popUpTo(0) { inclusive = true }
             }
+        } catch (e: Exception) {
+            Log.e("AuthController", "Error during logout: ${e.message}")
         }
+    }
 }
-
-
